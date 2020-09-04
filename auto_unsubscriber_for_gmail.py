@@ -20,9 +20,8 @@ import bs4
 from bs4 import BeautifulSoup
 
 def unsubscribe_links(imap_address, e_mail, password):
-	mail_un_links = set()
-	if_yes_break = 0
-	
+	mail_un_links = set() #set for unsubscription links (using set to not duplicate links from mails)
+	#opening mails by IMAP
 	with imapclient.IMAPClient(imap_address, ssl=True) as imap:
 		try:
 			imap.login(e_mail, password)
@@ -30,7 +29,6 @@ def unsubscribe_links(imap_address, e_mail, password):
 		except:
 			print('Log in unsuccessful')
 			sys.exit()
-		# print(imap.list_folders())
 		imap.select_folder('INBOX', readonly=True)
 
 		UIDs = imap.search('ALL')
@@ -44,12 +42,13 @@ def unsubscribe_links(imap_address, e_mail, password):
 				html_form = messages.html_part.get_payload().decode(messages.html_part.charset)
 				soup = bs4.BeautifulSoup(html_form, 'html.parser')
 				links_elem = soup.find_all('a')
-
-				
+	
+				#looking for unsubscription links				
 				for link in links_elem:
 					if 'unsubscribe' in link.text.lower():
 						unsubscribe_link = link.get('href')
 						mail_un_links.add(unsubscribe_link)
+		#adding unsubscription links to the set
 		try:		
 			for unsubscribe_link in mail_un_links:
 				print('opening ' + str(unsubscribe_link))
